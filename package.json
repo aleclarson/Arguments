@@ -1,0 +1,25 @@
+{
+  "name": "Arguments",
+  "version": "1.0.0",
+  "main": "js/Arguments",
+  "plugins": [
+    "lotus-coffee"
+  ],
+  "scripts": {
+    "build": "coffee-build -v 1.11.x -b -o js src",
+    "postinstall": "npm run build"
+  },
+  "dependencies": {
+    "Either": "aleclarson/Either#1.0.0",
+    "NamedFunction": "aleclarson/NamedFunction#2.0.1",
+    "Shape": "aleclarson/Shape#2.0.1",
+    "assertType": "aleclarson/assertType#2.0.1",
+    "define": "aleclarson/define#1.0.1",
+    "emptyFunction": "aleclarson/emptyFunction#1.0.0",
+    "formatType": "aleclarson/formatType#1.0.0",
+    "isDev": "aleclarson/isDev#2.0.0",
+    "isType": "aleclarson/isType#1.0.1",
+    "mergeDefaults": "aleclarson/mergeDefaults#1.0.2",
+    "setType": "aleclarson/setType#1.0.0"
+  }
+}
