@@ -11,35 +11,43 @@ define = require "define"
 Shape = require "Shape"
 isDev = require "isDev"
 
+ObjectOrArray = Either Object, Array
+
 module.exports =
 Arguments = NamedFunction "Arguments", (types) ->
-  assertType types, Either(Array, Object)
-  self = {types, required: no}
-  if Array.isArray types
-    self.isArray = yes
-    self.required = yes
-  else self.strict = no
+  assertType types, ObjectOrArray
+
+  self = {isArray: Array.isArray types}
+
+  if isDev
+    self.types = types
+    self.required = self.isArray
+    self.strict = no unless self.isArray
+
   return setType self, Arguments
 
 define Arguments.prototype,
 
-  create: (values) ->
-    return values if values
-    return [] if @isArray
-    return {}
+  create: emptyFunction.thatReturnsArgument
 
   initialize: (values) ->
-    values = @create values
-    assertType values, @_objType
-    mergeDefaults values, @defaults if @defaults
+    assertType values, Array if isDev and values?
+
+    values = @create values ? []
+
+    unless @isArray
+      values = values[0]
+      values ?= {}
+
+    if values?
+      assertType values, if @isArray then Array else Object
+      mergeDefaults values, @defaults if @defaults
+
     return values
 
   _isArray: (values) ->
     return yes if Array.isArray values
     return values and isType values.length, Number
-
-  _objType: get: ->
-    if @isArray then Array else Object
 
 isDev and
 define Arguments.prototype,
@@ -124,57 +132,35 @@ Object.assign Arguments.prototype,
 
 Arguments.Builder = do ->
 
+  optionTypes =
+    types: ObjectOrArray
+    defaults: ObjectOrArray
+    required: Either Boolean, ObjectOrArray
+    strict: Boolean
+    create: Function
+
   Builder = NamedFunction "Arguments_Builder", ->
-    self = setType {}, Builder
-    define self, _args: null
-    define self, props
-    return setType self, Builder
-
-  props =
-
-    types:
-      value: null
-      didSet: (newValue) ->
-        throw Error "Cannot set 'types' more than once!" if @_args
-        assertType newValue, Either(Array, Object)
-        @_args = Arguments newValue
-        return
-
-    defaults:
-      value: null
-      didSet: (newValue) ->
-        throw Error "Must set 'types' first!" unless @_args
-        assertType newValue, @_args._objType
-        @_args.defaults = newValue
-        return
-
-    required:
-      value: null
-      didSet: (newValue) ->
-        throw Error "Must set 'types' first!" unless @_args
-        assertType newValue, Either @_args._objType, Boolean
-        @_args.required = newValue
-        return
-
-    strict:
-      value: null
-      didSet: (newValue) ->
-        throw Error "Must set 'types' first!" unless @_args
-        throw Error "Cannot set 'strict' when 'types' is an array!" if @isArray
-        assertType newValue, Boolean
-        @_args.strict = newValue
-        return
-
-    create:
-      value: null
-      didSet: (newValue) ->
-        throw Error "Must set 'types' first!" unless @_args
-        assertType newValue, Function
-        @_args.create = newValue
-        return
+    return Object.create Builder.prototype
 
   define Builder.prototype,
 
-    build: -> @_args
+    set: (key, value) ->
+
+      if isDev
+        if optionType = optionTypes[key]
+        then assertType value, optionType, key
+        else throw Error "Invalid key: '#{key}'"
+
+      this[key] = value
+      return
+
+    build: ->
+      args = Arguments @types
+      args.defaults = @defaults if @defaults
+      args.create = @create if @create
+      if isDev
+        args.required = @required if @required?
+        args.strict = @strict if @strict?
+      return args
 
   return Builder

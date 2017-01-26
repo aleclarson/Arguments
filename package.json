@@ -19,7 +19,7 @@
     "formatType": "aleclarson/formatType#1.0.0",
     "isDev": "aleclarson/isDev#2.0.0",
     "isType": "aleclarson/isType#1.0.1",
-    "mergeDefaults": "aleclarson/mergeDefaults#1.0.1",
+    "mergeDefaults": "aleclarson/mergeDefaults#1.0.2",
     "setType": "aleclarson/setType#1.0.0"
   }
 }
