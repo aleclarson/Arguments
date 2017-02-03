@@ -83,7 +83,8 @@ define Arguments.prototype,
         return value isnt undefined
 
     return (value, key) ->
-      return required[key] is yes
+      return yes if required[key]
+      return isType value, Object
 
   _validateArray: (array) ->
     {types, shouldValidate} = this
