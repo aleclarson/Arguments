@@ -1,5 +1,5 @@
 
-# Arguments v1.0.0 ![stable](https://img.shields.io/badge/stability-stable-4EBA0F.svg?style=flat)
+# Arguments v1.1.0 ![stable](https://img.shields.io/badge/stability-stable-4EBA0F.svg?style=flat)
 
 #### Properties
 - `types : Array | Object` The expected constructors/validators that must be matched
