@@ -52,7 +52,9 @@ define Arguments.prototype,
 isDev and
 define Arguments.prototype,
 
-  validate: (values) ->
+  validate: (values, partial = no) ->
+    assertType partial, Boolean, "partial"
+    @partial = partial
 
     if @_isArray values
       throw TypeError "Cannot validate arrays!" unless @isArray
@@ -61,6 +63,8 @@ define Arguments.prototype,
       throw TypeError "Expected an array!" if @isArray
       throw TypeError "Expected an object!" unless isType values, Object
       error = @_validateOptions values, @types
+
+    @partial = null
 
     if error
       if isType error, Object
@@ -87,6 +91,7 @@ define Arguments.prototype,
     for type, index in types
       value = values[index]
       continue unless shouldValidate value, index
+      continue if @partial and (value is undefined)
       return error if error = @_validateType value, type, keyPath + "[#{index}]"
 
     return null
@@ -102,6 +107,7 @@ define Arguments.prototype,
     for key, type of types
       value = options[key]
       continue unless shouldValidate value, key
+      continue if @partial and (value is undefined)
       return error if error = @_validateType value, type, "options." + key
 
     return null
@@ -109,7 +115,9 @@ define Arguments.prototype,
   _validateTypes: (values, types, keyPath) ->
     keyPath += "." if keyPath
     for key, type of types
-      return error if error = @_validateType values[key], type, keyPath + key
+      value = values[key]
+      continue if @partial and (value is undefined)
+      return error if error = @_validateType value, type, keyPath + key
     return null
 
   _validateType: (value, type, key) ->
