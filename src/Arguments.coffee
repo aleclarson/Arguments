@@ -58,11 +58,11 @@ define Arguments.prototype,
 
     if @_isArray values
       throw TypeError "Cannot validate arrays!" unless @isArray
-      error = @_validateArray values, "arguments"
+      error = @_validateArray values
     else
       throw TypeError "Expected an array!" if @isArray
       throw TypeError "Expected an object!" unless isType values, Object
-      error = @_validateOptions values, @types
+      error = @_validateOptions values
 
     @partial = null
 
@@ -85,14 +85,14 @@ define Arguments.prototype,
     return (value, key) ->
       return required[key] is yes
 
-  _validateArray: (values, keyPath) ->
+  _validateArray: (array) ->
     {types, shouldValidate} = this
 
     for type, index in types
-      value = values[index]
+      value = array[index]
       continue unless shouldValidate value, index
       continue if @partial and (value is undefined)
-      return error if error = @_validateType value, type, keyPath + "[#{index}]"
+      return error if error = @_validateType value, type, "arguments[#{index}]"
 
     return null
 
