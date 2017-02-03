@@ -23,6 +23,7 @@ Arguments = NamedFunction "Arguments", (types) ->
     self.types = types
     self.required = self.isArray
     self.strict = no unless self.isArray
+    self.shouldValidate = emptyFunction.thatReturnsTrue
 
   return setType self, Arguments
 
@@ -72,33 +73,32 @@ define Arguments.prototype,
       else error
     else null
 
-  shouldValidate: get: ->
+  _shouldValidate: (value, key) ->
     {required} = this
 
     if required is yes
-      return emptyFunction.thatReturnsTrue
+      return @shouldValidate value, key
 
     if required is no
-      return (value) ->
-        return value isnt undefined
+      return no if value is undefined
+      return @shouldValidate value, key
 
-    return (value, key) ->
-      return yes if required[key]
-      return isType value, Object
+    return no unless required[key] or isType value, Object
+    return @shouldValidate value, key
 
   _validateArray: (array) ->
-    {types, shouldValidate} = this
+    {types} = this
 
     for type, index in types
       value = array[index]
-      continue unless shouldValidate value, index
+      continue unless @_shouldValidate value, index
       continue if @partial and (value is undefined)
       return error if error = @_validateType value, type, "arguments[#{index}]"
 
     return null
 
   _validateOptions: (options) ->
-    {types, shouldValidate} = this
+    {types} = this
 
     if @strict
       for key, value of options
@@ -107,7 +107,7 @@ define Arguments.prototype,
 
     for key, type of types
       value = options[key]
-      continue unless shouldValidate value, key
+      continue unless @_shouldValidate value, key
       continue if @partial and (value is undefined)
       return error if error = @_validateType value, type, "options." + key
 
