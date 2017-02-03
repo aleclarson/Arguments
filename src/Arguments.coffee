@@ -114,6 +114,12 @@ define Arguments.prototype,
     return null
 
   _validateTypes: (values, types, keyPath) ->
+
+    if @strict
+      for key, value of values
+        if types[key] is undefined
+          return Error "'#{keyPath}.#{key}' is not supported!"
+
     keyPath += "." if keyPath
     for key, type of types
       value = values[key]
