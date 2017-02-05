@@ -101,7 +101,7 @@ define Arguments.prototype,
     {types} = this
 
     if @strict
-      for key, value of options
+      for key of options
         if types[key] is undefined
           return Error "'options.#{key}' is not supported!"
 
@@ -116,7 +116,7 @@ define Arguments.prototype,
   _validateTypes: (values, types, keyPath) ->
 
     if @strict
-      for key, value of values
+      for key of values
         if types[key] is undefined
           return Error "'#{keyPath}.#{key}' is not supported!"
 
