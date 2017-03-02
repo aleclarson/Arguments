@@ -41,7 +41,9 @@ define Arguments.prototype,
       values ?= {}
 
     if values?
-      assertType values, if @isArray then Array else Object
+      if @isArray
+      then assertType values, Array, "arguments"
+      else assertType values, Object, "arguments[0]"
       mergeDefaults values, @defaults if @defaults
 
     return values
