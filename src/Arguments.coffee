@@ -23,6 +23,7 @@ Arguments = NamedFunction "Arguments", (types) ->
     self.types = types
     self.required = self.isArray
     self.strict = no unless self.isArray
+    self.shouldValidate = emptyFunction.thatReturnsTrue
 
   return setType self, Arguments
 
@@ -40,7 +41,9 @@ define Arguments.prototype,
       values ?= {}
 
     if values?
-      assertType values, if @isArray then Array else Object
+      if @isArray
+      then assertType values, Array, "arguments"
+      else assertType values, Object, "arguments[0]"
       mergeDefaults values, @defaults if @defaults
 
     return values
@@ -52,15 +55,19 @@ define Arguments.prototype,
 isDev and
 define Arguments.prototype,
 
-  validate: (values) ->
+  validate: (values, partial = no) ->
+    assertType partial, Boolean, "partial"
+    @partial = partial
 
     if @_isArray values
       throw TypeError "Cannot validate arrays!" unless @isArray
-      error = @_validateArray values, "arguments"
+      error = @_validateArray values
     else
       throw TypeError "Expected an array!" if @isArray
       throw TypeError "Expected an object!" unless isType values, Object
-      error = @_validateOptions values, @types
+      error = @_validateOptions values
+
+    @partial = null
 
     if error
       if isType error, Object
@@ -68,48 +75,58 @@ define Arguments.prototype,
       else error
     else null
 
-  shouldValidate: get: ->
+  _shouldValidate: (value, key) ->
     {required} = this
 
     if required is yes
-      return emptyFunction.thatReturnsTrue
+      return @shouldValidate value, key
 
     if required is no
-      return (value) ->
-        return value isnt undefined
+      return no if value is undefined
+      return @shouldValidate value, key
 
-    return (value, key) ->
-      return required[key] is yes
+    return no unless required[key] or isType value, Object
+    return @shouldValidate value, key
 
-  _validateArray: (values, keyPath) ->
-    {types, shouldValidate} = this
+  _validateArray: (array) ->
+    {types} = this
 
     for type, index in types
-      value = values[index]
-      continue unless shouldValidate value, index
-      return error if error = @_validateType value, type, keyPath + "[#{index}]"
+      value = array[index]
+      continue unless @_shouldValidate value, index
+      continue if @partial and (value is undefined)
+      return error if error = @_validateType value, type, "arguments[#{index}]"
 
     return null
 
   _validateOptions: (options) ->
-    {types, shouldValidate} = this
+    {types} = this
 
     if @strict
-      for key, value of options
+      for key of options
         if types[key] is undefined
           return Error "'options.#{key}' is not supported!"
 
     for key, type of types
       value = options[key]
-      continue unless shouldValidate value, key
+      continue unless @_shouldValidate value, key
+      continue if @partial and (value is undefined)
       return error if error = @_validateType value, type, "options." + key
 
     return null
 
   _validateTypes: (values, types, keyPath) ->
+
+    if @strict
+      for key of values
+        if types[key] is undefined
+          return Error "'#{keyPath}.#{key}' is not supported!"
+
     keyPath += "." if keyPath
     for key, type of types
-      return error if error = @_validateType values[key], type, keyPath + key
+      value = values[key]
+      continue if @partial and (value is undefined)
+      return error if error = @_validateType value, type, keyPath + key
     return null
 
   _validateType: (value, type, key) ->

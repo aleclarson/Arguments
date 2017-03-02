@@ -97,7 +97,7 @@ describe "Arguments", ->
     it "supports objects", ->
       args = Arguments {foo: Number, bar: Number}
       args.defaults = {foo: 0}
-      values = args.initialize {bar: 1}
+      values = args.initialize [bar: 1]
       expect values.foo
         .toBe 0
       expect values.bar
