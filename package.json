@@ -12,7 +12,7 @@
   "dependencies": {
     "Either": "aleclarson/Either#1.0.0",
     "NamedFunction": "aleclarson/NamedFunction#2.0.1",
-    "Shape": "aleclarson/Shape#2.0.1",
+    "Validator": "aleclarson/Validator#1.1.1",
     "assertType": "aleclarson/assertType#2.0.1",
     "define": "aleclarson/define#1.0.1",
     "emptyFunction": "aleclarson/emptyFunction#1.0.0",
