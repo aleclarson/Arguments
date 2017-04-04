@@ -4,11 +4,11 @@ emptyFunction = require "emptyFunction"
 mergeDefaults = require "mergeDefaults"
 assertType = require "assertType"
 formatType = require "formatType"
+Validator = require "Validator"
 setType = require "setType"
 Either = require "Either"
 isType = require "isType"
 define = require "define"
-Shape = require "Shape"
 isDev = require "isDev"
 
 ObjectOrArray = Either Object, Array
@@ -130,17 +130,20 @@ define Arguments.prototype,
     return null
 
   _validateType: (value, type, key) ->
+
     if isType type, Object
-      return {key, type: Object} unless isType value, Object
-      return error if error = @_validateTypes value, type, key
-    else if isType type, Shape
-      return error if error = type.assert value, key
-    else unless isType value, type
+      if isType value, Object
+        return @_validateTypes value, type, key
+      return {key, type: Object}
+
+    if type instanceof Validator
+      return type.assert value, key
+
+    unless isType value, type
       return {key, type}
-    return null
 
 isDev or
-Object.assign Arguments.prototype,
+define Arguments.prototype,
   validate: emptyFunction
 
 #
